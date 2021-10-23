@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +13,13 @@ namespace Weather.Data
     public class WeatherRepository : IWeatherRepository
     {
         private readonly DataContext _context;
+        private readonly IMemoryCache _memoryCache;
 
-        public WeatherRepository(DataContext context)
+
+        public WeatherRepository(DataContext context, IMemoryCache memoryCache)
         {
             _context = context;
+            _memoryCache = memoryCache;
         }
 
         public async Task<bool> AddWeather(string cityName, AddWeatherDto addWeatherDto)
@@ -91,27 +95,48 @@ namespace Weather.Data
 
         public async Task<ICollection<WeatherHistory>> GetAllWeathersForCity(string cityName)
         {
-            var weathers = await _context.Weathers
-                .Include(h => h.WeatherHistory)
-                .Where(c => c.CityName == cityName)
-                .Select(weather => weather.WeatherHistory)
-                .SingleOrDefaultAsync();
-            return weathers;
+            string KEY = cityName;
+
+            ICollection<WeatherHistory> cache;
+
+            if (!_memoryCache.TryGetValue(KEY, out cache))
+            {
+                var weathers = await _context.Weathers
+                    .Include(h => h.WeatherHistory)
+                    .Where(c => c.CityName == cityName)
+                    .Select(weather => weather.WeatherHistory)
+                    .SingleOrDefaultAsync();
+                cache = weathers;
+
+                _memoryCache.Set<ICollection<WeatherHistory>>(KEY, cache, TimeSpan.FromSeconds(2));
+            }
+            
+            return cache;
         }
 
         public async Task<CurrentWeatherDto> GetCurrentWeatherForCity(string cityName)
         {
-            var currWeather = await _context.Weathers
-                .Where(c => c.CityName == cityName)
-                .Select(c => new CurrentWeatherDto
-                {
-                    CurrentT = c.CurrentT,
-                    AverageT = c.AverageT,
-                    MinT = c.MinT,
-                    MaxT = c.MaxT
-                })
-                .SingleOrDefaultAsync();
-            return currWeather;
+            string KEY = "currentWeather/" + cityName;
+            CurrentWeatherDto cache;
+
+            if (!_memoryCache.TryGetValue(KEY, out cache))
+            {
+                var currWeather = await _context.Weathers
+                    .Where(c => c.CityName == cityName)
+                    .Select(c => new CurrentWeatherDto
+                    {
+                        CurrentT = c.CurrentT,
+                        AverageT = c.AverageT,
+                        MinT = c.MinT,
+                        MaxT = c.MaxT
+                    })
+                    .SingleOrDefaultAsync();
+                cache = currWeather;
+
+                _memoryCache.Set<CurrentWeatherDto>(KEY, cache, TimeSpan.FromSeconds(2));
+            }
+            
+            return cache;
         }
 
         public async Task<bool> SaveAllAsync()
