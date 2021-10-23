@@ -50,6 +50,10 @@ namespace Weather.Data
                 return await SaveAllAsync();
             }
 
+            var findSame = city.WeatherHistory.Where(d => d.Date == addWeatherDto.Date);
+
+            if (findSame.Any()) return await Task.FromResult(false);
+
             var weatherHistory = new WeatherHistory
             {
                 TemperatureC = addWeatherDto.TemperatureC,
