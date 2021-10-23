@@ -64,12 +64,17 @@ namespace Weather.Data
             return await SaveAllAsync();
         }
 
-        public async Task<WeatherEntity> ArchiveWeathers(string cityName)
+        public List<WeatherHistory> ArchiveWeathers(string cityName, DateTime startDate, DateTime endDate)
         {
-            var city = await _context.Weathers
-                .Include(h => h.WeatherHistory)
-                .SingleOrDefaultAsync(c => c.CityName == cityName);
-            return city;
+            var weather = _context.Weathers.Include(h => h.WeatherHistory).SingleOrDefault(weather => weather.CityName == cityName);
+
+            if (weather is null) return null;
+
+            var weatherHistories = weather.WeatherHistory.Where(h => h.Date >= startDate).Where(h => h.Date <= endDate).ToList();
+
+            if (weatherHistories is null) return null;
+
+            return weatherHistories;
         }
 
         public async Task<bool> DeleteWeather(string cityName, DateTime date, bool deleteOnlyCondition)
@@ -95,11 +100,11 @@ namespace Weather.Data
 
         public async Task<ICollection<WeatherHistory>> GetAllWeathersForCity(string cityName)
         {
-            string KEY = cityName;
+            string Key = cityName;
 
             ICollection<WeatherHistory> cache;
 
-            if (!_memoryCache.TryGetValue(KEY, out cache))
+            if (!_memoryCache.TryGetValue(Key, out cache))
             {
                 var weathers = await _context.Weathers
                     .Include(h => h.WeatherHistory)
@@ -108,7 +113,7 @@ namespace Weather.Data
                     .SingleOrDefaultAsync();
                 cache = weathers;
 
-                _memoryCache.Set<ICollection<WeatherHistory>>(KEY, cache, TimeSpan.FromSeconds(2));
+                _memoryCache.Set<ICollection<WeatherHistory>>(Key, cache, TimeSpan.FromSeconds(2));
             }
             
             return cache;
@@ -116,10 +121,10 @@ namespace Weather.Data
 
         public async Task<CurrentWeatherDto> GetCurrentWeatherForCity(string cityName)
         {
-            string KEY = "currentWeather/" + cityName;
+            string Key = "currentWeather/" + cityName;
             CurrentWeatherDto cache;
 
-            if (!_memoryCache.TryGetValue(KEY, out cache))
+            if (!_memoryCache.TryGetValue(Key, out cache))
             {
                 var currWeather = await _context.Weathers
                     .Where(c => c.CityName == cityName)
@@ -133,7 +138,7 @@ namespace Weather.Data
                     .SingleOrDefaultAsync();
                 cache = currWeather;
 
-                _memoryCache.Set<CurrentWeatherDto>(KEY, cache, TimeSpan.FromSeconds(2));
+                _memoryCache.Set<CurrentWeatherDto>(Key, cache, TimeSpan.FromSeconds(2));
             }
             
             return cache;

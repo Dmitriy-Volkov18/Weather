@@ -62,6 +62,17 @@ namespace Weather.Controllers
             return weathersToReturn;
         }
 
+        [HttpGet("archive-weathers/{cityName}/{startDate}/{endDate}")]
+        public ActionResult<WeatherHistoryDto[]> ArchiveWeathers(string cityName, DateTime startDate, DateTime endDate)
+        {
+            var weatherHistories = _weatherRepository.ArchiveWeathers(cityName, startDate, endDate);
+            var weathersToReturn = _mapper.Map<WeatherHistoryDto[]>(weatherHistories);
+
+            if (weathersToReturn is null) return NotFound();
+
+            return Ok(weathersToReturn);
+        }
+
         [HttpDelete("delete-weather/{cityName}/{timestamp}")]
         public async Task<IActionResult> DeleteWeather(string cityName, DateTime timestamp)
         {

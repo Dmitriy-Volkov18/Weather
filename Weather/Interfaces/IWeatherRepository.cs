@@ -10,7 +10,7 @@ namespace Weather.Interfaces
     {
         Task<bool> AddWeather(string cityName, AddWeatherDto addWeatherDto);
         Task<bool> UpdateWeather(string cityName, DateTime timestamp, UpdateWeatherDto updateWeatherDto);
-        Task<WeatherEntity> ArchiveWeathers(string cityName);
+        List<WeatherHistory> ArchiveWeathers(string cityName, DateTime startDate, DateTime endDate);
         Task<ICollection<WeatherHistory>> GetAllWeathersForCity(string cityName);
         Task<CurrentWeatherDto> GetCurrentWeatherForCity(string cityName);
         Task<bool> DeleteWeather(string cityName, DateTime date, bool deleteOnlyCondition);

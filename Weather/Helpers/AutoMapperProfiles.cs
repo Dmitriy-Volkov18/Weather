@@ -8,7 +8,6 @@ namespace Weather.Helpers
     {
         public AutoMapperProfiles()
         {
-            CreateMap<AddWeatherDto, WeatherEntity>();
             CreateMap<WeatherEntity, WeatherEntityDto>();
             CreateMap<WeatherHistory, WeatherHistoryDto>();
         }
