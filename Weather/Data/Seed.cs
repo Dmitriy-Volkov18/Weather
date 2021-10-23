@@ -31,7 +31,7 @@ namespace Weather.Data
                         new WeatherHistory
                         {
                             TemperatureC = 44,
-                            Date = DateTime.Now
+                            Date = DateTime.UtcNow
                         }
                     }
                 },
@@ -53,7 +53,7 @@ namespace Weather.Data
                         new WeatherHistory
                         {
                             TemperatureC = 32,
-                            Date = DateTime.Now
+                            Date = DateTime.UtcNow
                         }
                     }
                 },
