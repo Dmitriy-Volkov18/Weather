@@ -99,6 +99,8 @@ namespace Weather.Data
 
             weather.WeatherHistory.Remove(weatherHistory);
 
+            UpdateStatistics(weather, weatherHistory);
+
             return await SaveAllAsync();
         }
 

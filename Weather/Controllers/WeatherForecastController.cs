@@ -25,9 +25,9 @@ namespace Weather.Controllers
         {
             var result = await _weatherRepository.AddWeather(cityName, addTemperatureDto);
 
-            if (result) return Ok();
+            if (result) return Created("msg", "New weather was created successfully");
 
-            return BadRequest();
+            return BadRequest("There is already existing weather with same date");
         }
 
         [HttpPut("update-weather/{cityName}/{timestamp}")]
@@ -35,9 +35,9 @@ namespace Weather.Controllers
         {
             var result = await _weatherRepository.UpdateWeather(cityName, timestamp, updateWeatherDto);
 
-            if (result) return Ok();
+            if (result) return Ok("Weather was successfully updated");
 
-            return BadRequest();
+            return BadRequest("Something went wrong");
         }
 
         [HttpGet("currentWeather/{cityName}")]
@@ -46,7 +46,7 @@ namespace Weather.Controllers
             var city = await _weatherRepository.GetCurrentWeatherForCity(cityName);
             var cityToReturn = _mapper.Map<CurrentWeatherDto>(city);
 
-            if (cityToReturn is null) return NotFound();
+            if (cityToReturn is null) return NotFound("The city doesn`t exist. Add it before view info");
 
             return cityToReturn;
         }
@@ -57,7 +57,7 @@ namespace Weather.Controllers
             var weathers = await _weatherRepository.GetAllWeathersForCity(cityName);
             var weathersToReturn = _mapper.Map<WeatherHistoryDto[]>(weathers);
 
-            if (weathersToReturn is null) return NotFound();
+            if (weathersToReturn.Length == 0) return NotFound("There are no existing weathers for that city");
 
             return weathersToReturn;
         }
@@ -68,7 +68,7 @@ namespace Weather.Controllers
             var weatherHistories = _weatherRepository.ArchiveWeathers(cityName, startDate, endDate);
             var weathersToReturn = _mapper.Map<WeatherHistoryDto[]>(weatherHistories);
 
-            if (weathersToReturn is null) return NotFound();
+            if (weathersToReturn.Length == 0) return NotFound("There are no any weathers for that period of time");
 
             return Ok(weathersToReturn);
         }
@@ -78,9 +78,9 @@ namespace Weather.Controllers
         {
             var result = await _weatherRepository.DeleteWeather(cityName, timestamp, true);
 
-            if (result) return Ok();
+            if (result) return Ok("Weather was successfully deleted");
 
-            return BadRequest();
+            return BadRequest("Something went wrong");
         }
     }
 }
